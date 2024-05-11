@@ -1,9 +1,9 @@
-import json
+import base64
+import urllib.parse
 
-import requests
 from flask import Flask, request
 
-from serve import do_translate, do_improve
+from serve import do_translate, do_improve, do_chat, do_ocr
 
 app=Flask(__name__)
 
@@ -16,7 +16,7 @@ def translate():
     try:
         result=do_translate(message)
     except:
-        print('translate unknown error!\n')
+        print('translation unknown error!\n')
         return {
             'status': 'error',
             'message': 'server error!',
@@ -29,17 +29,45 @@ def translate():
 def improve():
     message=request.get_json()
     print('improve message: ', message)
-    result=dict()
     try:
         result=do_improve(message)
     except:
-        print('improve unknown error!\n')
+        print('improvement unknown error!\n')
         return {
-                'status': 'error',
-                "message": "server error!"
-            }
+            'status': 'error',
+            "message": "server error!"
+        }
     print(result)
     return result
+
+
+@app.route('/ocr', methods=['POST'])
+def ocr():
+    image=request.files['image']
+    print('recognize message: ', image)
+
+    image_base64=base64.b64encode(image.stream.read())
+    image_base64=urllib.parse.quote_from_bytes(image_base64)
+    try:
+        result=do_ocr(image_base64)
+    except Exception as e:
+        print(e)
+        print('reorganization unknown error')
+        return {
+            'status': 'error',
+            "message": "server error!"
+        }
+    print(result)
+    return result
+
+
+@app.route('/chat', methods=['GET'], )
+def chat():
+    param=request.args.get('content')
+    res=do_chat({
+        'content': param
+    })
+    return "<p style=\"color: red\">" + res + "</p>"
 
 
 if __name__ == '__main__':
