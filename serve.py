@@ -1,7 +1,7 @@
 import erniebot
 import requests
 import json
-
+import re
 import settings
 
 erniebot.api_type=settings.erniebot_api_type
@@ -9,6 +9,7 @@ erniebot.access_token=settings.erniebot_access_token
 
 prompt_translate=settings.prompt_translate
 prompt_improve=settings.prompt_improve
+prompt_mindmap = settings.prompt_mindmap
 
 
 def do_translate(data: dict):
@@ -131,6 +132,29 @@ def do_chat(data: dict):
         # disable_search=False,
         top_p=0.95)
     return response.get_result()
+
+def do_generate_mindmap(data: dict):
+    response=erniebot.ChatCompletion.create(
+        model="ernie-4.0",
+        messages=[{
+            "role": "user",
+            "content": data['content']
+        }],
+        system=prompt_mindmap,
+        disable_search=False,
+        top_p=0.95)
+    # 提取```python\n(.*?)\n```
+    pattern = r'```dot([\s\S]*?)```'
+    
+    mindmap_code = re.findall(pattern, response.get_result())[0]
+    # mindmap_code = mindmap_code + '\nprint(buffered_image)'
+    # print("mindmap_code: ", mindmap_code)
+    # exec(mindmap_code)
+    # print(locals())
+    print(mindmap_code)
+    # bi = locals()['buffered_image']
+
+    return mindmap_code
 
 
 if __name__ == '__main__':

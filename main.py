@@ -1,10 +1,13 @@
 import base64
 import urllib.parse
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, Response, request, jsonify
 import mimetypes
-from serve import do_translate, do_improve, do_chat, do_ocr
+from serve import do_translate, do_improve, do_chat, do_ocr, do_generate_mindmap
 from requests_toolbelt.multipart.encoder import MultipartEncoder
+from render import render_mindmap
+from PIL import Image
+from io import BytesIO
 
 app=Flask(__name__)
 
@@ -104,10 +107,6 @@ def asr():
         # 处理请求失败的情况
         return jsonify({"error": f"Failed to forward request: {str(e)}"}), 500
 
-# @app.route('/ocr', methods=['POST'])
-# def ocr():
-
-
 
 @app.route('/chat', methods=['GET'], )
 def chat():
@@ -116,6 +115,29 @@ def chat():
         'content': param
     })
     return "<p style=\"color: red\">" + res + "</p>"
+
+@app.route('/mindmap', methods=['GET'],)
+def mindmap():
+    text = request.args.get('text')
+    buffered_image = do_generate_mindmap({
+        'content': text
+    })
+    img = render_mindmap(buffered_image)
+    img_base64 = base64.b64encode(img).decode('utf-8')
+    img = Image.open(BytesIO(img))
+    width, height = img.size
+
+    # 构造Base64编码的Data URI Scheme，用于直接在HTML中展示图像
+    data_uri = f"data:image/png;base64,{img_base64}"
+    response_data = {
+        'image_data_uri': data_uri,
+        'width': width,
+        'height': height
+    }
+    print(response_data)
+
+    # 直接返回Base64编码的字符串，或者根据实际需求调整返回内容和类型
+    return response_data
 
 
 if __name__ == '__main__':
