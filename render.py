@@ -1,6 +1,7 @@
 from graphviz import Source
 import io
 
+
 def render_mindmap(dot_code):
     """
     接收 Dot 代码字符串，直接在内存中渲染为 PNG 图像并返回图像的字节流。
@@ -9,9 +10,9 @@ def render_mindmap(dot_code):
     :return: 包含 PNG 图像数据的字节流
     """
     # 创建 Source 对象
-    source = Source(dot_code)
-    
+    source=Source(dot_code)
+
     # 使用 pipe 方法直接在内存中渲染图像为 PNG 格式
-    png_bytes = source.pipe(format='png')
-    
+    png_bytes=source.pipe(format='png')
+
     return png_bytes
