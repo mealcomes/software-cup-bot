@@ -2,6 +2,7 @@ import base64
 import mimetypes
 import urllib.parse
 from io import BytesIO
+import io
 
 import requests
 from PIL import Image
@@ -9,7 +10,7 @@ from flask import Flask, request, jsonify
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from render import render_mindmap
-from serve import do_translate, do_improve, do_chat, do_ocr, do_generate_mindmap, do_continue
+from serve import do_translate, do_improve, do_chat, do_ocr, do_generate_mindmap, do_continue, do_summary
 
 app=Flask(__name__)
 
@@ -17,14 +18,18 @@ app=Flask(__name__)
 @app.route('/translate', methods=['POST'])
 def translate():
     message=request.get_json()
+    if not message['content']:
+        return {
+            'status': 'error',
+            'message': 'content can\'t be null!'
+        }
     print('translate message: ', message)
     try:
         result=do_translate(message)
-        print(result)
+        print('translate: ', result)
         return result
     except Exception as e:
-        print(e)
-        print('translation unknown error!\n')
+        print('translate error: ', e)
         return {
             'status': 'error',
             'message': 'server error!',
@@ -34,14 +39,18 @@ def translate():
 @app.route('/improve', methods=['POST'])
 def improve():
     message=request.get_json()
+    if not message['content']:
+        return {
+            'status': 'error',
+            'message': 'content can\'t be null!'
+        }
     print('improve message: ', message)
     try:
         result=do_improve(message)
-        print(result)
+        print('improve: ', result)
         return result
     except Exception as e:
-        print(e)
-        print('improvement unknown error!\n')
+        print('improve error: ', e)
         return {
             'status': 'error',
             "message": "server error!"
@@ -50,13 +59,18 @@ def improve():
 
 @app.route('/ocr', methods=['POST'])
 def ocr():
-    image=request.files['image']
-    print('recognize message: ', image)
+    if 'image' in request.files:
+        target=request.files['image']
+        file_type='image'
+    else:
+        target=request.files['pdf_file']
+        file_type='pdf_file'
+    print('recognize message: ', target)
 
-    image_base64=base64.b64encode(image.stream.read())
-    image_base64=urllib.parse.quote_from_bytes(image_base64)
+    tmp=base64.b64encode(io.BytesIO(target.read()).getvalue())
+    image_base64=urllib.parse.quote_from_bytes(tmp)
     try:
-        result=do_ocr(image_base64)
+        result=do_ocr(image_base64, file_type)
     except Exception as e:
         print(e)
         print('ocr unknown error')
@@ -115,6 +129,11 @@ def asr():
 @app.route('/mindmap', methods=['GET'], )
 def mindmap():
     text=request.args.get('text')
+    if not text:
+        return {
+            'status': 'error',
+            'message': 'content can\'t be null!'
+        }
     print('mindmap message: ', text)
     try:
         buffered_image=do_generate_mindmap({
@@ -148,14 +167,39 @@ def mindmap():
 @app.route('/continuation', methods=['POST'])
 def continuation():
     message=request.get_json()
+    if not message['content']:
+        return {
+            'status': 'error',
+            'message': 'content can\'t be null!'
+        }
     print('continuation message: ', message)
     try:
         result=do_continue(message)
+        print('continuation: ', result)
+        return result
+    except Exception as e:
+        print('continuation error: ', e)
+        return {
+            'status': 'error',
+            'message': 'server error!',
+        }
+
+
+@app.route('/summary', methods=['POST'])
+def summary():
+    message=request.get_json()
+    if not message['content']:
+        return {
+            'status': 'error',
+            'message': 'content can\'t be null!'
+        }
+    print('summary message: ', message)
+    try:
+        result=do_summary(message)
         print(result)
         return result
     except Exception as e:
-        print(e)
-        print('continuation unknown error!\n')
+        print('summary error: ', e)
         return {
             'status': 'error',
             'message': 'server error!',

@@ -40,7 +40,7 @@ def do_translate(data: dict):
         else:
             return {
                 'status': 'error',
-                "message": response['error_msg'],
+                "message": 'server error!',
             }
     else:
         return {
@@ -73,11 +73,11 @@ def do_improve(data: dict):
             }
 
 
-def do_ocr(image_base64):
+def do_ocr(file_base64, file_type):
     url="https://aip.baidubce.com/rest/2.0/ocr/v1/accurate_basic?access_token=" + get_access_token(
         settings.ocr_client_id, settings.ocr_client_secret)
 
-    payload=f"image={image_base64}&detect_direction=true&paragraph=false&probability=false"
+    payload=f"{file_type}={file_base64}&detect_direction=true&paragraph=false&probability=false"
     headers={
         'Content-Type': 'application/x-www-form-urlencoded',
         'Accept': 'application/json'
@@ -93,9 +93,10 @@ def do_ocr(image_base64):
                 'message': response["words_result"]
             }
         else:
+            print('ocr: ', response['error_code'] , response['error_msg'])
             return {
                 'status': 'error',
-                "message": response['error_msg'],
+                "message": 'server error!'
             }
     else:
         return {
@@ -153,6 +154,39 @@ def do_continue(data: dict):
             return {
                 'status': 'ok',
                 'message': response["result"]
+            }
+        else:
+            return {
+                'status': 'error',
+                "message": 'server error!',
+            }
+    else:
+        return {
+            'status': 'error',
+            "message": erniebot.api_type + ' error'
+        }
+
+
+def do_summary(data: dict):
+    response=erniebot.ChatCompletion.create(
+        model="ernie-4.0",
+        messages=[{
+            "role": "user",
+            "content": data['content']
+        }],
+        system=settings.prompt_summary,
+        disable_search=True,
+        top_p=0.90)
+    if response.rcode == 200:
+        if 'result' in response:
+            return {
+                'status': 'ok',
+                'message': response["result"]
+            }
+        else:
+            return {
+                'status': 'error',
+                "message": 'server error!',
             }
     else:
         return {
