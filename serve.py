@@ -1,3 +1,5 @@
+from time import sleep
+
 import erniebot
 import requests
 import json
@@ -93,7 +95,7 @@ def do_ocr(file_base64, file_type):
                 'message': response["words_result"]
             }
         else:
-            print('ocr: ', response['error_code'] , response['error_msg'])
+            print('ocr: ', response['error_code'], response['error_msg'])
             return {
                 'status': 'error',
                 "message": 'server error!'
@@ -108,14 +110,14 @@ def do_ocr(file_base64, file_type):
 def do_chat(data: dict):
     response=erniebot.ChatCompletion.create(
         model="ernie-4.0",
-        messages=[{
-            "role": "user",
-            "content": data['content']
-        }],
-        # system=prompt_improve,
-        # disable_search=False,
-        top_p=0.95)
-    return response.get_result()
+        messages=data['content'],
+        stream=True,
+        top_p=0.95
+    )
+    for r in response:
+        print((r.get_result()))
+        yield r.get_result()
+        sleep(0.5)
 
 
 def do_generate_mindmap(data: dict):
@@ -195,12 +197,10 @@ def do_summary(data: dict):
         }
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
     # print(do_translate({
     #     "target": "en",
     #     "content": "“我要的语言是中文” 现在回答我深圳有哪些地方比较好玩"
     # }))
     # for i in range(0, 10):
-    print(do_improve({
-        "content": "这句话用英文回答"
-    }))
+

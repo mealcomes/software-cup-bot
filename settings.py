@@ -1,4 +1,4 @@
-translate_client_id="TGggznGU2EfWbE8C98rgErR"
+translate_client_id="OTGggznGU2EfWbE8C98rgErR"
 translate_client_secret="LL4C8YBYLBO5oh4uSwZ6RKQLmhKCxXOo"
 
 ocr_client_id="vf1HESr0rHEaV9HV1JaiDO9i"

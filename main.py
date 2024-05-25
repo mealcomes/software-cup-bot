@@ -6,13 +6,32 @@ import io
 
 import requests
 from PIL import Image
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from render import render_mindmap
 from serve import do_translate, do_improve, do_chat, do_ocr, do_generate_mindmap, do_continue, do_summary
 
 app=Flask(__name__)
+
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    message=request.get_json()
+    # if not message['content']:
+    #     return {
+    #         'status': 'error',
+    #         'message': 'content can\'t be null!'
+    #     }
+    print('chat message: ', message)
+    try:
+        return Response(do_chat(message))
+    except Exception as e:
+        print('chat error: ', e)
+        return {
+            'status': 'error',
+            'message': 'server error!',
+        }
 
 
 @app.route('/translate', methods=['POST'])
@@ -87,7 +106,10 @@ def asr():
     # 获取上传的音频文件
     audio_file=request.files.get('file')
     if not audio_file:
-        return jsonify({"error": "No file part"}), 400
+        return jsonify({
+            "message": "No file part",
+            "status": "error"
+        })
 
     # 构造边界字符串
     boundary='wL36Yn8afVp8Ag7AmP8qZ0SA4n1v9T'
@@ -120,10 +142,15 @@ def asr():
         response=requests.post(target_url, data=encoder, headers=headers)
         response.raise_for_status()  # 检查请求是否成功
         # 将目标API的响应直接返回给前端
-        return response.content, response.status_code, response.headers.items()
+        return {
+            "status": "ok",
+            "message": eval(response.content.decode("utf-8")).get("result")
+        }
     except requests.exceptions.RequestException as e:
-        # 处理请求失败的情况
-        return jsonify({"error": f"Failed to forward request: {str(e)}"}), 500
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to forward request: {str(e)}"
+        })
 
 
 @app.route('/mindmap', methods=['GET'], )
@@ -207,7 +234,7 @@ def summary():
 
 
 @app.route('/chat', methods=['GET'], )
-def chat():
+def chatTest():
     param=request.args.get('content')
     res=do_chat({
         'content': param
@@ -217,3 +244,4 @@ def chat():
 
 if __name__ == '__main__':
     app.run(port=86)
+    # socketio.run(app, host='0.0.0.0', port=86, allow_unsafe_werkzeug=True)
