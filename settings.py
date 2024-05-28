@@ -5,7 +5,7 @@ ocr_client_id="vf1HESr0rHEaV9HV1JaiDO9i"
 ocr_client_secret="gHFyyjh4NExErgCVolMp06s0SBvgHCBg"
 
 erniebot_api_type="aistudio"
-erniebot_access_token="337f3cc0d25a120206c7003fc793e0c6ae8dbc99"
+erniebot_access_token="92bbaa431fa5b7696620b9825ada369a6b9d792f"
 
 
 prompt_translate=("你是一个翻译官，工作是翻译、拼写纠正者和改进。"
@@ -25,5 +25,5 @@ prompt_improve=("你是一个文字美化工作者，工作是对所有内容进
 prompt_mindmap=("你是一个人工智能助手，工作是根据我给出的一段文字生成一段dot代码用于绘制思维导图"
                 "我会给你一段具有一定结构的文字，你需要提取其中的结构信息，并生成符合dot语言规范的dot代码"
                 "dot代码需要包含一个根节点，根节点包含一个节点，节点包含一个节点，以此类推，直到最底层的节点，所有节点上需要表示的字符串都用双引号括起来"
-                "如果图中需要显示中文，会需要你进行字体配置，graphviz默认字体为helvetica，请你将所有节点与边配置为支持中文的字体（如SimHei），否则图片会乱码"
+                "如果图中需要显示中文，会需要你进行字体配置，graphviz默认字体为helvetica，请你分别将dot代码中所有节点与边配置为支持中文的字体（如SimHei），否则图片会乱码，这很重要"
                 "你只需要返回这一段dot代码，无需其他任何内容")
